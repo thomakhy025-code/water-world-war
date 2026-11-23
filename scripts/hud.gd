@@ -79,7 +79,7 @@ func _process(_delta: float) -> void:
 	elif player != null and player.toast_left > 0.0:
 		_banner.text = str(player.toast)
 	else:
-		_banner.text = "Destroy the enemy King.\nFeed the army, or the soldiers starve."
+		_banner.text = "2v2. You and ALLY against GUARD and SIEGE.\nDestroy the red King. Feed the army, or the soldiers starve."
 
 
 func _unhandled_input(event: InputEvent) -> void:

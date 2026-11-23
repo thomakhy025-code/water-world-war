@@ -10,6 +10,9 @@ var team_id := 0
 var ai_controlled := false
 var color := Color.WHITE
 var team_name := "Blue"
+var callsign := ""
+var role := ""
+var lane_point := Vector2.ZERO
 var soldiers := 100.0
 var spirit := 50.0
 var carried_food := 0.0
@@ -126,7 +129,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if ai_controlled:
 		var decision = _ai.choose(self, delta)
-		_move_dir = decision.move
+		_move_dir = _separate(decision.move)
 		_wants_attack = decision.attack
 		if str(decision.build) != "":
 			_try_build(str(decision.build))
@@ -403,6 +406,22 @@ func _nearest_hostile(radius: float):
 	return best
 
 
+func _separate(dir: Vector2) -> Vector2:
+	var push := Vector2.ZERO
+	for other in Groups.get_all(get_tree(), "captains"):
+		if other == self or not other.alive:
+			continue
+		var away: Vector2 = global_position - other.global_position
+		var dist := away.length()
+		if dist < 46.0 and dist > 0.01:
+			push += away / dist * (46.0 - dist) / 46.0
+	if push.length() < 0.05:
+		return dir
+	if dir.length() < 0.05:
+		return push.normalized()
+	return (dir + push).normalized()
+
+
 func _battle_over() -> bool:
 	var battle = get_tree().current_scene
 	return battle != null and battle.get("finished") == true
@@ -433,3 +452,7 @@ func _draw() -> void:
 	var pos := Vector2(-10, -42)
 	draw_string(font, pos + Vector2(1, 1), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.BLACK)
 	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, text_color)
+	if callsign != "":
+		var tag_pos := Vector2(-22, 32)
+		draw_string(font, tag_pos + Vector2(1, 1), callsign, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.BLACK)
+		draw_string(font, tag_pos, callsign, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)

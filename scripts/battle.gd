@@ -78,8 +78,8 @@ func _add_wall(rect: Rect2) -> void:
 
 
 func _spawn_castles_and_kings() -> void:
-	_castle(0, "Blue", Color("3c9dff"), _blue_castle, _blue_castle + _attack * 150.0, 0.0)
-	_castle(1, "Red", Color("e25b55"), _red_castle, _red_castle - _attack * 150.0, 36.0)
+	_castle(0, "Blue", Color("3c9dff"), _blue_castle, _blue_castle + _attack * 150.0, 12.0)
+	_castle(1, "Red", Color("e25b55"), _red_castle, _red_castle - _attack * 150.0, 40.0)
 	_king(0, "Blue", Color("3c9dff"), _blue_castle)
 	_king(1, "Red", Color("e25b55"), _red_castle)
 
@@ -163,15 +163,21 @@ func _node(kind: String, pos: Vector2) -> void:
 
 
 func _spawn_captains() -> void:
-	_captain(false, 0, "Blue", Color("3c9dff"), _blue_castle + _attack * 220.0, 30.0, 50.0)
-	_captain(true, 1, "Red", Color("e25b55"), _red_castle - _attack * 220.0, 8.0, 50.0)
+	var gap := _river * 78.0
+	_captain(false, 0, "Blue", "YOU", "", _lane_point(0.0, 0.35), Color("3c9dff"), _blue_castle + _attack * 210.0 + gap, 30.0, 50.0)
+	_captain(true, 0, "Blue", "ALLY", "supply", _lane_point(420.0, 0.42), Color("8fd0ff"), _blue_castle + _attack * 210.0 - gap, 22.0, 50.0)
+	_captain(true, 1, "Red", "GUARD", "hold", _lane_point(-420.0, 0.58), Color("e25b55"), _red_castle - _attack * 210.0 + gap, 18.0, 50.0)
+	_captain(true, 1, "Red", "SIEGE", "siege", _lane_point(0.0, 0.64), Color("ff9a86"), _red_castle - _attack * 210.0 - gap, 18.0, 50.0)
 
 
-func _captain(ai: bool, team_id: int, team_name: String, color: Color, pos: Vector2, food: float, spirit: float) -> void:
+func _captain(ai: bool, team_id: int, team_name: String, callsign: String, role: String, lane: Vector2, color: Color, pos: Vector2, food: float, spirit: float) -> void:
 	var captain = CaptainScript.new()
 	captain.ai_controlled = ai
 	captain.team_id = team_id
 	captain.team_name = team_name
+	captain.callsign = callsign
+	captain.role = role
+	captain.lane_point = lane
 	captain.color = color
 	captain.position = pos
 	captain.carried_food = food

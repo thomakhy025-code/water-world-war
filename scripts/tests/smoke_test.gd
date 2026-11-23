@@ -25,6 +25,12 @@ func _run() -> void:
 	if player == null:
 		_fail("missing the human captain")
 		return
+	if not _roster_ok(battle):
+		_fail("match is not 2v2: one human, one ally, two red captains")
+		return
+	if not _bots_take_their_jobs(battle):
+		_fail("bots did not take their build jobs")
+		return
 	var castle = player.my_castle()
 	if castle == null:
 		_fail("missing the blue castle")
@@ -153,6 +159,69 @@ func _run() -> void:
 func _human(battle):
 	for child in battle.get_children():
 		if child.is_in_group("captains") and not child.ai_controlled:
+			return child
+	return null
+
+
+func _roster_ok(battle) -> bool:
+	var humans := 0
+	var blue := 0
+	var red := 0
+	var roles := {}
+	for child in battle.get_children():
+		if not child.is_in_group("captains"):
+			continue
+		if child.ai_controlled:
+			roles[str(child.role)] = true
+		else:
+			humans += 1
+		if int(child.team_id) == 0:
+			blue += 1
+		else:
+			red += 1
+	return humans == 1 and blue == 2 and red == 2 and roles.has("supply") and roles.has("hold") and roles.has("siege")
+
+
+func _bots_take_their_jobs(battle) -> bool:
+	var ally = _captain_with_role(battle, "supply")
+	var guard = _captain_with_role(battle, "hold")
+	var siege = _captain_with_role(battle, "siege")
+	if ally == null or guard == null or siege == null:
+		return false
+	ally.carried_food = Rules.CAMPSITE_COST + 6.0
+	guard.carried_materials = Rules.BARRICADE_COST
+	siege.carried_materials = Rules.CATAPULT_COST
+	var ally_choice = ally._ai.choose(ally, 0.1)
+	var guard_choice = guard._ai.choose(guard, 0.1)
+	var siege_choice = siege._ai.choose(siege, 0.1)
+	if not _is_building(ally, ally_choice, "campsite"):
+		return false
+	if not _is_building(guard, guard_choice, "barricade"):
+		return false
+	if not _is_building(siege, siege_choice, "catapult"):
+		return false
+	return true
+
+
+func _is_building(captain, choice: Dictionary, kind: String) -> bool:
+	if str(choice.build) == kind:
+		return true
+	var move := Vector2(choice.move)
+	if move.length() < 0.5:
+		return false
+	var next: Vector2 = captain.global_position + move * 30.0
+	for child in captain.get_parent().get_children():
+		if not child.is_in_group("build_slots") or child.structure != null:
+			continue
+		var before: float = captain.global_position.distance_to(child.global_position)
+		if next.distance_to(child.global_position) < before - 8.0:
+			return true
+	return false
+
+
+func _captain_with_role(battle, role: String):
+	for child in battle.get_children():
+		if child.is_in_group("captains") and str(child.role) == role:
 			return child
 	return null
 
