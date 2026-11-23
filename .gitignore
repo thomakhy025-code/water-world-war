@@ -1,0 +1,12 @@
+# Godot 4 cache and import state
+.godot/
+
+# Exports
+export/
+build/
+android/
+
+# OS noise
+.DS_Store
+Thumbs.db
+*.tmp
